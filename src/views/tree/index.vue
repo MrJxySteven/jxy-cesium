@@ -42,7 +42,7 @@
         position1: {},
         terrainProvider: {},
         orientation: {},
-        uri1: '../../assets/img/railway.png',
+        uri1: './Cesium_Air.gltf',
         // uri1:url,
         start: {},
         stop: {},
