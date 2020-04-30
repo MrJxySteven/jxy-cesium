@@ -1,6 +1,6 @@
 <template>
   <div class="viewer">
-    <vc-viewer  infoBox="true" @ready="ready">
+    <vc-viewer infoBox="true" @ready="ready">
       <vc-navigation></vc-navigation>
       <vc-layer-imagery>
         <vc-provider-imagery-bingmaps
@@ -10,6 +10,19 @@
         ></vc-provider-imagery-bingmaps>
       </vc-layer-imagery>
       <vc-provider-terrain-cesium ref="terrain" :requestWaterMask="requestWaterMask"></vc-provider-terrain-cesium>
+      <vc-collection-primitive-point :points="points"></vc-collection-primitive-point>
+      <!-- <vc-collection-primitive-point>
+        <template v-for="(polyline, index) of polylines">
+          <template v-for="(position, subIndex) of polyline.positions">
+            <vc-primitive-point
+              :position="position"
+              :key="'point' + index + 'position' + subIndex"
+              :color="colorPoint"
+              :pixelSize="32"
+            ></vc-primitive-point>
+          </template>
+        </template>
+      </vc-collection-primitive-point> -->
 
       <vc-handler-draw-point
         ref="handlerPoint"
@@ -42,12 +55,12 @@
   </div>
 </template>
 <script>
-import url from '@/assets/img/railway.png'
+import url from "@/assets/img/railway.png";
 export default {
   data() {
     return {
-      cesiumInstance:null,
-      railwayUrl:url,
+      cesiumInstance: null,
+      railwayUrl: url,
       pointDrawing: false,
       polylineDrawing: false,
       polygonDrawing: false,
@@ -58,15 +71,61 @@ export default {
             color: "blue"
           }
         }
-      }
+      },
+      points: [],
+      colorPoint: {},
+      polylines: [
+        {
+          positions: [
+            {
+              lng: 119.24884033203125,
+              lat: 30.313117980957031,
+              height: 1183.3186645507812
+            },
+            {
+              lng: 119.24906555725647,
+              lat: 30.312892755731806,
+              height: 1183.3186645507812
+            }
+          ]
+        },
+        {
+          positions: [
+            {
+              lng: 119.24884033203125,
+              lat: 30.313392639160156,
+              height: 1183.804443359375
+            },
+            {
+              lng: 119.24906555725632,
+              lat: 30.31316741393502,
+              height: 1183.6849884241819
+            }
+          ]
+        },
+        {
+          positions: [
+            {
+              lng: 119.24884033203125,
+              lat: 30.313655853271484,
+              height: 1184.2783203125
+            },
+            {
+              lng: 119.24906555725632,
+              lat: 30.313430628046348,
+              height: 1184.1093236654997
+            }
+          ]
+        }
+      ]
     };
   },
   mounted() {
-    console.log(`this.viewer==`,this.viewer)
+    console.log(`this.viewer==`, this.viewer);
   },
   methods: {
     ready(cesiumInstance) {
-      this.cesiumInstance = cesiumInstance
+      this.cesiumInstance = cesiumInstance;
       const { Cesium, viewer } = cesiumInstance;
       // var target = new Cesium.Cartesian3(
       //   300770.50872389384,
@@ -81,26 +140,50 @@ export default {
       // viewer.camera.lookAt(target, offset);
       viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
 
+      // viewer.entities.add({
+      //   id: "兰成铁路,始建于1999年，全长150公里。。。",
+      //   position: Cesium.Cartesian3.fromDegrees(104.06, 30.67, 1000),
+      //   billboard: new Cesium.BillboardGraphics({
+      //     image: this.railwayUrl,
+      //     scale: 0.8
+      //   }),
+      //   label: new Cesium.LabelGraphics({
+      //     text: "兰成铁路",
+      //     font: "24px sans-serif",
+      //     horizontalOrigin: 1,
+      //     outlineColor: new Cesium.Color(0, 0, 0, 1),
+      //     outlineWidth: 2,
+      //     pixelOffset: new Cesium.Cartesian2(17, -5),
+      //     style: Cesium.LabelStyle.FILL
+      //   })
+      // });
 
-      viewer.entities.add({
-          id: '兰成铁路,始建于1999年，全长150公里。。。',
-          position: Cesium.Cartesian3.fromDegrees(104.06, 30.67, 1000),
-          billboard: new Cesium.BillboardGraphics({
-            image: this.railwayUrl,
-            scale: .8
-          }),
-          label: new Cesium.LabelGraphics({
-            text: '兰成铁路',
-            font: '24px sans-serif',
-            horizontalOrigin: 1,
-            outlineColor: new Cesium.Color(0, 0, 0, 1),
-            outlineWidth: 2,
-            pixelOffset: new Cesium.Cartesian2(17, -5),
-            style: Cesium.LabelStyle.FILL
-          })
-        })
-
-      
+       const points = []
+      // const points = [
+      //   {
+      //     position: { lng: 109.287331, lat: 21.261814 },
+      //     color: "red",
+      //     pixelSize: 8
+      //   },
+      //   {
+      //     position: { lng: 106.44062, lat: 29.514887 },
+      //     color: "green",
+      //     pixelSize: 9
+      //   },{
+      //     position: { lng: 106.448328, lat: 29.524316 },
+      //     color: "cyan",
+      //     pixelSize: 10
+      //   }
+      // ];
+      for (var i = 0; i < 1500; i++) {
+        let point = {}
+        point.position = { lng: Math.random() * 40 + 85, lat: Math.random() * 30 + 21 }
+        point.color = 'rgb(255,229,0)'
+        point.pixelSize = 8
+        points.push(point)
+      }
+      this.points = points;
+      // this.colorPoint = Cesium.Color.fromCssColorString("rgb(255,229,0)");
     },
     toggle(type) {
       console.log(type);
@@ -115,10 +198,10 @@ export default {
       this[_.type] = _.isActive;
     },
     movingEvt(windowPosition) {
-      console.log(22222222,windowPosition)
+      console.log(22222222, windowPosition);
     },
     drawEvt(result) {
-      console.log(33333333333)
+      console.log(33333333333);
       // result.finished && false;
       console.log(result);
     },
@@ -134,8 +217,8 @@ export default {
       );
     },
     jump() {
-       const { viewer } = this.cesiumInstance;
-       var target = new Cesium.Cartesian3(
+      const { viewer } = this.cesiumInstance;
+      var target = new Cesium.Cartesian3(
         300770.50872389384,
         5634912.131394585,
         2978152.2865545116
@@ -145,19 +228,18 @@ export default {
         -793.3419798081741,
         2499.9508860763162
       );
-     viewer.camera.lookAt(target, offset);
+      viewer.camera.lookAt(target, offset);
     }
-
   }
 };
 </script>
 
 <style lang="scss" scoped>
 .viewer {
-  width:100%;
-  height:700px;
+  width: 100%;
+  height: 700px;
   max-height: calc(100% - 200px);
-  position:relative;
+  position: relative;
 }
 .demo-tool {
   position: absolute;
