@@ -21,9 +21,9 @@
       </vc-layer-imagery>
     </vc-viewer>
     <div class="demo-tool">
-      <el-button class="md-raised md-accent" @click="viewTopDown">View Top Down</el-button>
-      <el-button class="md-raised md-accent" @click="viewSide">View Side</el-button>
-      <el-button class="md-raised md-accent" @click="viewAircraft">View Aircraft</el-button>
+      <el-button  @click="viewTopDown">俯视图</el-button>
+      <el-button  @click="viewSide">自由视图</el-button>
+      <el-button  @click="viewAircraft">正视图</el-button>
     </div>
   </div>
 </template>
