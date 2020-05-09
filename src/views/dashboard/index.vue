@@ -1,6 +1,12 @@
 <template>
   <div class="viewer">
-    <vc-viewer infoBox="true" @ready="ready">
+    <vc-viewer
+      :infoBox="true"
+      :shouldAnimate="true"
+      :animation="true"
+      :timeline="true"
+      @ready="ready"
+    >
       <vc-navigation></vc-navigation>
       <vc-layer-imagery>
         <vc-provider-imagery-bingmaps
@@ -9,8 +15,8 @@
           mapStyle="Aerial"
         ></vc-provider-imagery-bingmaps>
       </vc-layer-imagery>
-      <vc-provider-terrain-cesium ref="terrain" :requestWaterMask="requestWaterMask"></vc-provider-terrain-cesium>
-      <vc-collection-primitive-point :points="points"></vc-collection-primitive-point>
+      <!-- <vc-provider-terrain-cesium ref="terrain" :requestWaterMask="requestWaterMask"></vc-provider-terrain-cesium> -->
+      <!-- <vc-collection-primitive-point :points="points"></vc-collection-primitive-point> -->
       <!-- <vc-collection-primitive-point>
         <template v-for="(polyline, index) of polylines">
           <template v-for="(position, subIndex) of polyline.positions">
@@ -22,7 +28,17 @@
             ></vc-primitive-point>
           </template>
         </template>
-      </vc-collection-primitive-point> -->
+      </vc-collection-primitive-point>-->
+
+      <!-- <vc-primitive-polyline-ground :appearance="appearance">
+        <vc-instance-geometry>
+          <vc-geometry-polyline-ground ref="polylineGround" :positions="positions" :width="10"></vc-geometry-polyline-ground>
+        </vc-instance-geometry>
+      </vc-primitive-polyline-ground>-->
+
+      <!-- <vc-datasource-kml ref="vcKml"  @ready="datasourceReady" data="./bikeRide.kml" :show="show"></vc-datasource-kml> -->
+
+      
 
       <vc-handler-draw-point
         ref="handlerPoint"
@@ -46,11 +62,25 @@
       ></vc-handler-draw-polygon>
     </vc-viewer>
     <div class="demo-tool">
-      <el-button @click="toggle('handlerPoint')">{{ pointDrawing ? '停止' : '点' }}</el-button>
+      <!-- <el-select v-model="selectValue" placeholder="请选择线路" @change="selectChange">
+        <el-option
+          v-for="item in selectOptions"
+          :key="item.value"
+          :label="item.label"
+          :value="item.value"
+        ></el-option>
+      </el-select>-->
+
+      <el-button @click="showKml">{{showFlagKml ? '隐藏KML' : '显示KML' }}</el-button>
+      <el-button @click="showFlight">{{showFlagFlight ? '隐藏Flight' : '显示Flight' }}</el-button>
+
+      <!-- <el-button @click="showFlight">{{showFlagFlight ? '隐藏Flight' : '显示Flight' }}</el-button> -->
+
+      <!-- <el-button @click="toggle('handlerPoint')">{{ pointDrawing ? '停止' : '点' }}</el-button>
       <el-button @click="toggle('handlerLine')">{{ polylineDrawing ? '停止' : '线' }}</el-button>
       <el-button @click="toggle('handlerPolygon')">{{ polygonDrawing ? '停止' : '面' }}</el-button>
       <el-button @click="jump">喜马拉雅</el-button>
-      <el-button @click="clear">清除</el-button>
+      <el-button @click="clear">清除</el-button>-->
     </div>
   </div>
 </template>
@@ -59,6 +89,32 @@ import url from "@/assets/img/railway.png";
 export default {
   data() {
     return {
+      showFlagKml: false,
+      showFlagFlight: false,
+      show: true,
+      selectValue: "",
+      selectOptions: [
+        {
+          value: "0",
+          label: "成兰线1"
+        },
+        {
+          value: "1",
+          label: "成兰线2"
+        },
+        {
+          value: "2",
+          label: "成兰线3"
+        },
+        {
+          value: "3",
+          label: "成兰线4"
+        },
+        {
+          value: "4",
+          label: "成兰线5"
+        }
+      ],
       cesiumInstance: null,
       railwayUrl: url,
       pointDrawing: false,
@@ -117,11 +173,24 @@ export default {
             }
           ]
         }
-      ]
+      ],
+      appearance: {},
+      geometryInstances: {},
+      positions: [
+        { lng: 100.1340164450331, lat: 31.05494287836128 },
+        { lng: 108.08821010582645, lat: 31.05494287836128 },
+        { lng: 108.07821010582645, lat: 31.05494287836128 }
+      ],
+      dataSourcePromise: null
     };
   },
   mounted() {
     console.log(`this.viewer==`, this.viewer);
+    Promise.all([this.$refs.vcKml.createPromise]).then((instances) => {
+        instances[0].viewer.zoomTo(instances[0].viewer.entities)
+
+        console.log(` instances[0].viewer.zoomTo(instances[0].viewer.entities)===`, instances[0].viewer.zoomTo(instances[0].viewer.entities))
+      })
   },
   methods: {
     ready(cesiumInstance) {
@@ -139,6 +208,9 @@ export default {
       // );
       // viewer.camera.lookAt(target, offset);
       viewer.camera.lookAtTransform(Cesium.Matrix4.IDENTITY);
+
+      // 显示线
+      this.appearance = new Cesium.PolylineMaterialAppearance();
 
       // viewer.entities.add({
       //   id: "兰成铁路,始建于1999年，全长150公里。。。",
@@ -158,7 +230,7 @@ export default {
       //   })
       // });
 
-       const points = []
+      const points = [];
       // const points = [
       //   {
       //     position: { lng: 109.287331, lat: 21.261814 },
@@ -176,15 +248,19 @@ export default {
       //   }
       // ];
       for (var i = 0; i < 1500; i++) {
-        let point = {}
-        point.position = { lng: Math.random() * 40 + 85, lat: Math.random() * 30 + 21 }
-        point.color = 'rgb(255,229,0)'
-        point.pixelSize = 8
-        points.push(point)
+        let point = {};
+        point.position = {
+          lng: Math.random() * 40 + 85,
+          lat: Math.random() * 30 + 21
+        };
+        point.color = "rgb(255,229,0)";
+        point.pixelSize = 8;
+        points.push(point);
       }
       this.points = points;
       // this.colorPoint = Cesium.Color.fromCssColorString("rgb(255,229,0)");
     },
+
     toggle(type) {
       console.log(type);
       this.$refs[type].drawing = !this.$refs[type].drawing;
@@ -197,11 +273,8 @@ export default {
     activeEvt(_) {
       this[_.type] = _.isActive;
     },
-    movingEvt(windowPosition) {
-      console.log(22222222, windowPosition);
-    },
+    movingEvt(windowPosition) {},
     drawEvt(result) {
-      console.log(33333333333);
       // result.finished && false;
       console.log(result);
     },
@@ -229,6 +302,182 @@ export default {
         2499.9508860763162
       );
       viewer.camera.lookAt(target, offset);
+    },
+
+    // 显示线
+    showLine() {
+      this.$refs.polylineGround.createPromise.then(
+        ({ Cesium, viewer, cesiumObject }) => {
+          console.log(222, Cesium, viewer, cesiumObject);
+          const boundingSphere = Cesium.BoundingSphere.fromPoints(
+            cesiumObject._positions
+          );
+          viewer.scene.camera.flyToBoundingSphere(boundingSphere);
+        }
+      );
+    },
+
+    //显示飞行
+
+    showFlight() {
+      const { Cesium, viewer } = this.cesiumInstance;
+
+      let options = {
+        camera: viewer.scene.camera,
+        canvas: viewer.scene.canvas
+      };
+
+    let xxoo=  viewer.dataSources
+        .add(Cesium.KmlDataSource.load("./bikeRide.kml", options))
+        .then(function(dataSource) {
+          console.log(`dataSource==`,dataSource)
+          viewer.clock.shouldAnimate = false;
+          // var rider = dataSource.entities.getById("tour");
+          let rider = new Cesium.Entity();
+          viewer.flyTo(rider).then(function() {
+            viewer.trackedEntity = rider;
+            viewer.selectedEntity = viewer.trackedEntity;
+            viewer.clock.multiplier = 30;
+            viewer.clock.shouldAnimate = true;
+
+            viewer.zoomTo(dataSource.viewer.entities)
+
+          });
+        });
+
+      //   xxoo = viewer.then((instances) => {
+      //     console.log(`instances==`,instances)
+      //   instances[0].viewer.zoomTo(instances[0].viewer.entities)
+      // })
+
+
+      viewer.clock.clockRange = Cesium.ClockRange.UNBOUNDED;
+      viewer.clock.clockStep = Cesium.ClockStep.SYSTEM_CLOCK;
+
+      console.log(`2222222`, viewer.clock.clockRange, viewer.clock.clockStep);
+
+      // this.showFlagFlight = !this.showFlagFlight;
+    },
+
+    //显示kml
+
+    showKml() {
+      const { Cesium, viewer } = this.cesiumInstance;
+
+      console.log(
+        `this.showFlagKml==`,
+        this.showFlagKml,
+        this.dataSourcePromise
+      );
+      if (this.showFlagKml) {
+        viewer.dataSources.removeAll();
+        this.dataSourcePromise = null;
+        this.showFlagKml = !this.showFlagKml;
+      } else {
+        this.showFlagKml = !this.showFlagKml;
+
+        let options = {
+          camera: viewer.scene.camera,
+          canvas: viewer.scene.canvas
+        };
+
+        this.dataSourcePromise = viewer.dataSources.add(
+          Cesium.KmlDataSource.load("./proj.kml", options)
+        );
+
+        // 开启聚合
+
+        this.dataSourcePromise.then(dataSource => {
+          console.log(2222, dataSource);
+          var pixelRange = 15;
+          var minimumClusterSize = 3;
+          var enabled = true;
+
+          dataSource.clustering.enabled = enabled;
+          dataSource.clustering.pixelRange = pixelRange;
+          dataSource.clustering.minimumClusterSize = minimumClusterSize;
+
+          var removeListener;
+
+          var pinBuilder = new Cesium.PinBuilder();
+          var pin50 = pinBuilder.fromUrl("./bigHose.png", Cesium.Color.RED, 48);
+          var pin40 = pinBuilder.fromUrl(
+            "./bigHose.png",
+            Cesium.Color.ORANGE,
+            48
+          );
+          var pin30 = pinBuilder.fromUrl(
+            "./bigHose.png",
+            Cesium.Color.YELLOW,
+            48
+          );
+          var pin20 = pinBuilder.fromUrl(
+            "./bigHose.png",
+            Cesium.Color.GREEN,
+            48
+          );
+          var pin10 = pinBuilder.fromUrl(
+            "./bigHose.png",
+            Cesium.Color.BLUE,
+            48
+          );
+
+          var singleDigitPins = new Array(8);
+          for (var i = 0; i < singleDigitPins.length; ++i) {
+            singleDigitPins[i] = pinBuilder.fromUrl(
+              "./bigHose.png",
+              Cesium.Color.BLUE,
+              48
+            );
+            // .fromText("" + (i + 2), Cesium.Color.VIOLET, 48)
+            // .toDataURL();
+          }
+
+          function customStyle() {
+            if (Cesium.defined(removeListener)) {
+              removeListener();
+              removeListener = undefined;
+            } else {
+              removeListener = dataSource.clustering.clusterEvent.addEventListener(
+                function(clusteredEntities, cluster) {
+                  cluster.label.show = false;
+                  cluster.billboard.show = true;
+                  cluster.billboard.id = cluster.label.id;
+                  cluster.billboard.verticalOrigin =
+                    Cesium.VerticalOrigin.BOTTOM;
+
+                  if (clusteredEntities.length >= 50) {
+                    cluster.billboard.image = pin50;
+                  } else if (clusteredEntities.length >= 40) {
+                    cluster.billboard.image = pin40;
+                  } else if (clusteredEntities.length >= 30) {
+                    cluster.billboard.image = pin30;
+                  } else if (clusteredEntities.length >= 20) {
+                    cluster.billboard.image = pin20;
+                  } else if (clusteredEntities.length >= 10) {
+                    cluster.billboard.image = pin10;
+                  } else {
+                    cluster.billboard.image =
+                      singleDigitPins[clusteredEntities.length - 2];
+                  }
+                }
+              );
+            }
+
+            // force a re-cluster with the new styling
+            var pixelRange = dataSource.clustering.pixelRange;
+            dataSource.clustering.pixelRange = 0;
+            dataSource.clustering.pixelRange = pixelRange;
+          }
+
+          customStyle();
+        });
+      }
+    },
+
+    // select 选择线路
+    selectChange(val) {
+      val === 1 && this.showLine();
     }
   }
 };
