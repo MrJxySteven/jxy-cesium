@@ -14,9 +14,9 @@
         :orientation="orientation"
         :description="description"
       >
-        <!-- <vc-graphics-path ref="path" :resolution="1" :material="material1" :width="10"></vc-graphics-path> -->
+        <vc-graphics-path ref="path" :resolution="1" :material="material1" :width="10"></vc-graphics-path>
 
-        <vc-datasource-kml ref="path"   @ready="readyKml"  data="./bikeRide.kml" :show="show"></vc-datasource-kml>
+        <!-- <vc-datasource-kml ref="path"   @ready="readyKml"  data="./bikeRide.kml" :show="show"></vc-datasource-kml> -->
 
         <vc-graphics-model ref="model" :uri="uri1" :minimumPixelSize="64"></vc-graphics-model>
       </vc-entity>
@@ -114,11 +114,11 @@ export default {
       viewer.clock.clockRange = Cesium.ClockRange.LOOP_STOP; //Loop at the end
       viewer.clock.multiplier = 10;
       viewer.timeline.zoomTo(this.start, this.stop);
-      // this.position1 = this.computeCirclularFlight(
-      //   86.3553137781065,
-      //   41.2142425379045,
-      //   0.03
-      // );
+      this.position1 = this.computeCirclularFlight(
+        86.3553137781065,
+        41.2142425379045,
+        0.03
+      );
       console.log(`this.position1==`, this.position1);
 
       //         let arrPos =[
@@ -153,56 +153,64 @@ export default {
       );
     },
 
-    computeCirclularFlight(lon, lat, radius) {
-        const { Cesium, viewer } = this.cesiumInstance
-        let property = new Cesium.SampledPositionProperty()
-
-        console.log(`this.kmlObj===`,this.kmlObj)
-
-        this.positions.push(this.kmlObj)
-
-        property.addSample(this.kmlObj)
-
-        return property
-
-        // for (let i = 0; i <= 360; i += 45) {
-        //   let radians = Cesium.Math.toRadians(i)
-        //   let time = Cesium.JulianDate.addSeconds(this.start, i, new Cesium.JulianDate())
-        //   let position = Cesium.Cartesian3.fromDegrees(
-        //     lon + radius * 1.5 * Math.cos(radians),
-        //     lat + radius * Math.sin(radians),
-        //     Cesium.Math.nextRandomNumber() * 500 + 1750
-        //   )
-        //   property.addSample(time, position)
-        //   this.positions.push(position)
-        // }
-        return property
-      },
     // computeCirclularFlight(lon, lat, radius) {
-    //   let arrPos = [
-    //     { lng: 86.3553137781065, lat: 40.2142425379045, height: 0 },
-    //     { lng: 88.3553137781065, lat: 44.2142425379045, height: 0 },
-    //     { lng: 90.3553137781065, lat: 46.2142425379045, height: 0 }
-    //   ];
+    //     const { Cesium, viewer } = this.cesiumInstance
+    //     let property = new Cesium.SampledPositionProperty()
 
-    //   const { Cesium, viewer } = this.cesiumInstance;
-    //   let property = new Cesium.SampledPositionProperty();
+    //     console.log(`this.kmlObj===`,this.kmlObj)
 
-    //   for(let i=0; i< arrPos.length; i++) {
-    //     // let radians = Cesium.Math.toRadians(i)
-    //       let time = Cesium.JulianDate.addSeconds(this.start, 90*i, new Cesium.JulianDate())
-    //       let position = Cesium.Cartesian3.fromDegrees(
-    //         arrPos[i].lng,
-    //         arrPos[i].lat,
-    //          Cesium.Math.nextRandomNumber() * 500 + 1750
-    //       )
+    //     this.positions.push(this.kmlObj)
 
-    //       console.log(`position==`,position)
-    //       property.addSample(time, position)
-    //       this.positions.push(position)
-    //   }
-    //   return property;
-    // },
+    //     property.addSample(this.kmlObj)
+
+    //     return property
+
+    //     // for (let i = 0; i <= 360; i += 45) {
+    //     //   let radians = Cesium.Math.toRadians(i)
+    //     //   let time = Cesium.JulianDate.addSeconds(this.start, i, new Cesium.JulianDate())
+    //     //   let position = Cesium.Cartesian3.fromDegrees(
+    //     //     lon + radius * 1.5 * Math.cos(radians),
+    //     //     lat + radius * Math.sin(radians),
+    //     //     Cesium.Math.nextRandomNumber() * 500 + 1750
+    //     //   )
+    //     //   property.addSample(time, position)
+    //     //   this.positions.push(position)
+    //     // }
+    //     return property
+    //   },
+    computeCirclularFlight(lon, lat, radius) {
+      let arrPos = [
+        { lng: 86.3553137781065, lat: 41.2142425379045, height: 0 },
+        { lng: 86.3460580113202, lat: 41.2053959914706, height: 0 },
+        { lng: 86.3426389138625, lat: 41.2021499116324, height: 0 },
+        { lng: 86.3408536782476, lat: 41.2004594795185, height: 0 },
+        { lng: 86.336534432368, lat: 41.1963822621484, height: 0 },
+        { lng: 86.3336088396031, lat: 41.1936301418897, height: 0 },
+        { lng: 86.3322094970405, lat: 41.1923157055169, height: 0 },
+        { lng: 86.3301694029294, lat: 41.1903271787712, height: 0 },
+        { lng: 88.3553137781065, lat: 44.2142425379045, height: 0 },
+        { lng: 90.3553137781065, lat: 46.2142425379045, height: 0 }
+      ];
+
+      const { Cesium, viewer } = this.cesiumInstance;
+      let property = new Cesium.SampledPositionProperty();
+
+      for(let i=0; i< arrPos.length; i++) {
+        // let radians = Cesium.Math.toRadians(i)
+          let time = Cesium.JulianDate.addSeconds(this.start, 20*i, new Cesium.JulianDate())
+          let position = Cesium.Cartesian3.fromDegrees(
+            arrPos[i].lng,
+            arrPos[i].lat,
+            // arrPos[i].height,
+             Cesium.Math.nextRandomNumber() * 500 
+          )
+
+          console.log(`position==`,position)
+          property.addSample(time, position)
+          this.positions.push(position)
+      }
+      return property;
+    },
     viewTopDown() {
       const { Cesium, viewer } = this.cesiumInstance;
       viewer.trackedEntity = undefined;
